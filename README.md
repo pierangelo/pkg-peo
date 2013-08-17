@@ -1,4 +1,3 @@
 pkg-peo
 =======
-
-installer for P.E.O. ( Parlamento Elettornico Online )
+Installer for P.E.O. ( Parlamento Elettronico Online )

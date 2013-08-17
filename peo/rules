@@ -1,0 +1,515 @@
+#!/bin/bash
+
+##################################################################
+#
+#  Authors:
+#  Pierangelo Mancusi   <pierangelo.mancusi@gmail.com>
+#  License: Apache License v2
+#
+##################################################################
+
+
+
+
+
+##################################################################
+#
+# const
+#
+##################################################################
+
+REPO_LIQUIDFEEDBACK_CORE=https://github.com/Movimento5StelleLazio/ParlamentoElettronicoM5SCore.git
+REPO_LIQUIDFEEDBACK_FRONTEND=https://github.com/Movimento5StelleLazio/ParlamentoElettronicoM5S.git
+REPO_WEBMCP=https://github.com/Movimento5StelleLazio/WebMCP.git 
+
+REPO_NSESA_DIFF=https://bitbucket.org/EmanueleSabetta/nsesa-diff-lightedition.git
+REPO_NSESA_EDITOR_LIGHTEDITION=https://bitbucket.org/EmanueleSabetta/nsesa-editor-lightedition.git
+REPO_NSESA_EDITOR_AN_LIGHTEDITION=https://bitbucket.org/EmanueleSabetta/nsesa-editor-an-lightedition.git
+REPO_NSESA_SERVER_API_LIGHTEDITION=https://bitbucket.org/EmanueleSabetta/nsesa-server-api-lightedition.git
+REPO_NSESA_SERVER_IMPL_LIGHTEDITION=https://bitbucket.org/EmanueleSabetta/nsesa-server-impl-lightedition.git
+
+##################################################################
+#
+# globals vars
+#
+##################################################################
+
+
+OPTIONS=
+PROJECT=
+#check maven
+MAVEN=1
+#check git
+GIT=1
+
+
+
+##################################################################
+#
+# function change_to_install_dir 
+#
+##################################################################
+
+function change_to_install_dir {
+
+    cd ..
+
+}
+    
+
+##################################################################
+#
+# function help 
+#
+##################################################################
+
+function help {
+    echo 
+    echo P.E.O. Install Script v0.1a
+    echo for bugs send a mail to Pierangelo Mancusi '<mailto:pierangelo.mancusi@gmail.com>'
+    echo 
+    echo usage: ./rules [OPTIONS] [PROJECTS]
+    echo
+    echo OPTIONS are:
+    echo -e \\t build,\\t\\t       --get the source and install project/s
+    echo -e \\t install,\\t     --install selected project/s
+    echo -e \\t get-source,\\t  --get the source    
+    echo
+    echo PROJECTS are:
+    echo -e \\t all,\\t\\t                --to get all projects source
+    echo -e \\t core,\\t\\t     --liquidFeedback core  improved 
+    echo -e \\t editor,\\t  --at4am editor for AkomaNtoso v3.0 
+    echo
+    echo i.e: ./rules build all
+    echo
+}
+
+
+##################################################################
+#
+# function check_build_tools 
+# check for git and maven
+#
+##################################################################
+function check_build_tools {
+
+    #TODO: put in a separete file like DEPS
+    echo -e "checking dependencies:"
+    
+    #check git
+    MSG=git...
+    
+    type git >/dev/null 2>&1 || { 
+                        echo >&2 "not found!";
+                        #exit 1;
+                        #echo -e "ERROR: install git before or you can't get the source!. Stopping process."
+                        
+                        echo -e "** use command: sudo apt-get install git"
+                        echo -e "sudo apt-get install git"
+                        sudo apt-get install git;
+                        #GIT=0;
+                        #exit 1;
+                         }
+    
+    if [ $GIT = 1 ]; then
+    MSG+="found "
+    MSG+=$(git --version) 
+    echo $MSG
+    GIT=0
+    fi
+        
+    
+    #check maven
+    type mvn >/dev/null 2>&1 || { 
+                        echo -e "maven...not found!";
+                        #echo -e "warning: install maven before or you can't build the editor!"
+                        echo -e installing maven...
+                        echo -e "sudo apt-get install maven"
+                        sudo apt-get install maven;
+                        MAVEN=0;  
+                        #exit 1;   
+                        }
+    
+    if [ $MAVEN = 1 ]; then
+    MSG="maven...found "
+    MSG+=$(mvn --version) 
+    echo $MSG
+    MAVEN=0
+    fi
+
+
+}
+
+##################################################################
+#
+# function checkout 
+# check remote repository
+#
+##################################################################
+function checkout {
+
+    #checkout repos
+    echo -e checkout project: 1/8
+    git clone $REPO_LIQUIDFEEDBACK_CORE
+    echo -e checkout project: 2/8
+    git clone $REPO_LIQUIDFEEDBACK_FRONTEND
+    echo -e checkout project: 3/8
+    git clone $REPO_WEBMCP
+    echo -e checkout project: 4/8
+    git clone $REPO_NSESA_DIFF
+    echo -e checkout project: 5/8
+    git clone $REPO_NSESA_EDITOR_LIGHTEDITION
+    echo -e checkout project: 6/8
+    git clone $REPO_NSESA_EDITOR_AN_LIGHTEDITION
+    echo -e checkout project: 7/8
+    git clone $REPO_NSESA_SERVER_API_LIGHTEDITION
+    echo -e checkout project: 8/8
+    git clone $REPO_NSESA_SERVER_IMPL_LIGHTEDITION
+
+}
+
+##################################################################
+#
+# function check_core_deps 
+# check dependencies needed by the core module
+#
+##################################################################
+
+function check_core_deps { 
+
+    echo -e checking core deps...
+    echo -e "sudo apt-get install lua5.1 postgresql build-essential libpq-dev liblua5.1-0-dev lighttpd ghc libghc6-parsec3-dev imagemagick exim4"
+    sudo apt-get install lua5.1 postgresql build-essential libpq-dev liblua5.1-0-dev lighttpd ghc libghc6-parsec3-dev imagemagick exim4
+
+}
+
+##################################################################
+#
+# function build_webmcp
+#  
+#
+##################################################################
+
+function build_webmcp {
+
+    echo -e building webmcp...
+    echo -e entering webmcp directory...
+    
+    cd WebMCP/
+    make 
+    sudo mkdir /opt/webmcp
+    sudo cp -RL framework/* /opt/webmcp/
+    cd ..
+
+} #end function build_webmcp
+
+
+##################################################################
+#
+# function build_rocket_wiki
+#
+##################################################################
+function build_rocket_wiki {
+
+    echo -e installing rocket-wiki...
+    
+    wget http://www.public-software-group.org/pub/projects/rocketwiki/liquid_feedback_edition/v0.4/rocketwiki-lqfb-v0.4.tar.gz
+    tar -xvzf rocketwiki-lqfb-v0.4.tar.gz
+    cd rocketwiki-lqfb-v0.4
+    make
+    sudo mkdir /opt/rocketwiki-lqfb
+    sudo cp rocketwiki-lqfb rocketwiki-lqfb-compat /opt/rocketwiki-lqfb/
+    cd ..
+
+}
+
+##################################################################
+#
+# function build_liquid_feedback
+#
+##################################################################
+
+function build_liquid_feedback {
+
+    echo -e building liquidfeedback...
+    echo -e entering ParlamentoElettronicoM5S directory...
+    cd ParlamentoElettronicoM5S/
+    echo - copying files to /opt/liquid_feedback_frontend/ ...
+    #cp -RL * /opt/liquid_feedback_frontend/
+    sudo chown www-data /opt/liquid_feedback_frontend/tmp
+    
+    
+    #build html help page
+    /opt/liquid_feedback_frontend/locale/PATH=/opt/rocketwiki-lqfb:$PATH make
+    
+    
+
+}
+
+
+##################################################################
+#
+# function configure_postgres
+#
+##################################################################
+
+function configure_postgres {
+
+    echo -e configure core:
+    echo -e configure postgres...
+    #echo -e su - postgres
+   
+    #Shall the new role be a superuser? (y/n) n                         -S
+    #Shall the new role be allowed to create databases? (y/n) y         -d
+    #Shall the new role be allowed to create more new roles? (y/n) n    -R
+    #createuser -SdR  www-data
+    echo createuser -SdR  www-data |  su - postgres  
+    #exit
+    
+    #entering directory ParlamentoElettronicoM5SCore
+    echo -e entering directory ParlamentoElettronicoM5SCore...
+    cd ParlamentoElettronicoM5SCore/
+    make
+    
+    echo -e creating db liquid_feedback...
+    echo createdb liquid_feedback |  su - postgres  
+    
+    echo -e createlang plpgsql for db liquid_feedback
+    echo createlang plpgsql liquid_feedback |  su - postgres  
+    
+    echo -e polulating core db...
+    echo psql -v ON_ERROR_STOP=1 -f core.sql liquid_feedback |  su - postgres  
+    
+    echo -e **TODO: configure db liquid_feedback... 
+    
+    cd ..
+     
+    
+    #import db
+    echo -e **TODO: import an example db ?
+
+
+
+} #end function configure_core
+
+
+##################################################################
+#
+# function build_core 
+#
+##################################################################
+
+function build_core {
+
+    #check core dependencies 
+    check_core_deps
+    
+    #configure postgres db
+    configure_postgres
+   
+    #build webmcp framework
+    build_webmcp
+    
+    #build rocket_wiki
+    build_rocket_wiki
+    
+    #build liquid_feedback
+    build_liquid_feedback
+    
+    #Configure mail system
+    echo -e configuring mail system...
+    dpkg-reconfigure exim4-config
+    
+    #configure lighttp
+    echo -e copying lighttp standard configuration...
+    
+    cd ..
+    
+    
+    
+    sudo cp ParlamentoElettronicoM5SCore/60-liquidfeedback.conf /etc/lighttpd/conf-available/
+   
+    
+    #sudo ln -s /etc/lighttpd/conf-available/60-liquidfeedback.conf
+    
+    
+    echo -e copying standard frontend configuration... 
+    sudo cp ParlamentoElettronicoM5SCore/myconfig.lua /opt/liquid_feedback_frontend/config/myconfig.lua
+    
+    
+    echo -e executing lf_update once...
+    
+    echo cd /opt/liquid_feedback_core | su - www-data
+    ./lf_update dbname=liquid_feedback && echo OK
+    #exit
+    
+    echo -e restarting lighttp...
+    /etc/init.d/lighttpd restart
+    
+
+} #end function build_core
+
+
+
+
+
+##################################################################
+#
+# function build_editor 
+#
+##################################################################
+function build_editor {
+
+    echo -e  building editor...
+    
+    echo -e  building nsesa-diff...
+    cd nsesa-diff-lightedition
+    mvn install
+    cd ..
+    
+    
+    echo -e  building nsesa-editor-lightedition...
+    cd nsesa-editor-lightedition
+    mvn install
+    cd ..
+    
+    echo -e  building nsesa-editor-an-lightedition...
+    cd nsesa-editor-an-lightedition
+    mvn install
+    cd ..
+    
+    
+    echo -e  building nsesa-server-lightedition...
+    cd nsesa-server-lightedition
+    mvn install
+    cd ..
+    
+    
+    echo -e  building nsesa-server-impl-lightedition...
+    cd nsesa-server-impl-lightedition
+    mvn install
+    cd ..
+    
+    
+    
+
+}  #end function build_editor
+
+
+
+##################################################################
+#
+# function build_all 
+#
+##################################################################
+function build_all {
+
+    echo -e building all...
+    
+    #checking build tools 
+    check_build_tools
+    
+    #set installation directory
+    change_to_install_dir
+        
+    #checkout remote repository
+    checkout
+    
+    #build core application
+    build_core
+    
+    
+    #building editor
+    if [ $MAVEN = 0 ]; then
+    
+        build_editor
+        
+        else
+        echo
+        #echo -e WARNING: maven not found. Install maven to build editor.
+    fi
+
+} #end function build all
+
+
+
+##################################################################
+#
+# main
+#
+##################################################################
+
+
+if [ -z "$0" ]; then
+ help
+
+ elif [ "$1" = "build" ]; then
+    
+    #echo -e building...
+    if [ "$2" = "all" ]; then
+    
+        build_all
+     
+        elif [ "$2" = "liquidFeedback" ]; then
+        echo -e building liquidFeedback...
+         
+        #build_liquidFeedback
+        
+        elif [  "$2" = "at4am" ]; then 
+     
+        echo -e building at4am...
+        
+        else help
+    fi
+
+ elif [ "$1" = "install" ]; then
+    #echo -e installing...
+    if [ "$2" = "all" ]; then
+    
+     echo -e installing...all
+    
+        elif [ "$2" = "liquidFeedback" ]; then
+        
+         echo -e installing liquidFeedback...
+         
+        elif [  "$2" = "at4am" ]; then 
+     
+        echo -e installing at4am...
+        
+        else help
+    fi
+    
+    
+    
+    
+ elif [ "$1" = "get-source" ]; then
+ 
+     #echo -e getting source...
+    
+     if [ "$2" = "all" ]; then
+    
+     echo -e getting source...all
+    
+        elif [ "$2" = "liquidFeedback" ]; then
+        
+         echo -e getting source liquidFeedback...
+         
+        elif [  "$2" = "at4am" ]; then 
+     
+        echo -e getting source at4am...
+        
+        else help
+    fi
+    
+    
+   else help
+     
+fi
+
+
+ 
+
+
+
+
+
