@@ -1,0 +1,31 @@
+command:
+    
+    echo OPTIONS are:
+    echo -e \\t build,\\t\\t       --get the source and install project/s
+    echo -e \\t install,\\t     --install selected project/s
+    echo -e \\t get-source,\\t  --get the source    
+    echo
+    echo PROJECTS are:
+    echo -e \\t all,\\t\\t                --to get all projects source
+    echo -e \\t core,\\t\\t     --liquidFeedback core  improved 
+    echo -e \\t editor,\\t  --at4am editor for AkomaNtoso v3.0 
+    echo
+    echo i.e: ./rules build all
+    
+    
+command completed:
+
+* build all
+
+command to complete:
+
+* build core
+* build editor
+
+* install all
+* install core
+* install editor
+
+* get-source all
+* get-source core
+* get-source editor
